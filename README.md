@@ -60,9 +60,11 @@ You can add custom fields to the options:
 
 You can set <code>GLOBAL.graylogHost</code> and <code>GLOBAL.graylogPort</code> to the host and port of the Graylog2 server. By defaults it's <code>localhost</code> and <code>12201</code>.
 
+You can set <code>GLOBAL.graylogToConsole</code> to <code>true</code> to log JSON entries to console as well (useful for development in case you don't want to have graylog2 running on your workstation).
+
 ## Modification of the GLOBAL object?! But why?
 
-I like it that way and I truly believe that logger function must be the easiest to call for the programmer to never hesitate using it. 
+I know, it's wrong. However I like it that way and I truly believe that logger function must be the easiest to call for the programmer to never hesitate using it. So I think that logger functions should be one of the extremely few cases where global namespace pollution is feasible. 
 
 ## What is graylog2 after all? 
 

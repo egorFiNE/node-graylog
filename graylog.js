@@ -1,4 +1,5 @@
 compress = require('compress-buffer').compress;
+dgram = require('dgram');
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
@@ -12,6 +13,7 @@ GLOBAL.LOG_DEBUG=7;    // debug-level message
 GLOBAL.graylogHost = 'localhost';
 GLOBAL.graylogPort = 12201;
 GLOBAL.graylogHostname = require('os').hostname();
+GLOBAL.graylogToConsole = false;
 
 var graylog2Client  = dgram.createSocket("udp4");
 
@@ -31,8 +33,13 @@ function log(shortMessage, a, b) {
 	opts.facility = opts.facility || "Node.js";
 
 	opts.short_message = shortMessage;
+	
+	var logString = JSON.stringify(opts);
+	if (GLOBAL.graylogToConsole) { 
+		console.log(logString);
+	}
 
-	var message = compress(JSON.stringify(opts));
+	var message = compress(logString);
 
 	graylog2Client.send(message, 0, message.length, GLOBAL.graylogPort, GLOBAL.graylogHost);
 	graylog2Client.close();
