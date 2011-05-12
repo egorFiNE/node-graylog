@@ -41,8 +41,11 @@ function log(shortMessage, a, b) {
 
 	var message = compress(logString);
 
-	graylog2Client.send(message, 0, message.length, GLOBAL.graylogPort, GLOBAL.graylogHost);
-	graylog2Client.close();
+	try { 
+		graylog2Client.send(message, 0, message.length, GLOBAL.graylogPort, GLOBAL.graylogHost);
+		graylog2Client.close();
+	} catch(e) { 
+	}
 }
 
 GLOBAL.log = log;
