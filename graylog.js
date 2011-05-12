@@ -15,7 +15,6 @@ GLOBAL.graylogPort = 12201;
 GLOBAL.graylogHostname = require('os').hostname();
 GLOBAL.graylogToConsole = false;
 
-var graylog2Client  = dgram.createSocket("udp4");
 
 function log(shortMessage, a, b) {
 	var opts = {};
@@ -42,6 +41,7 @@ function log(shortMessage, a, b) {
 	var message = compress(logString);
 
 	try { 
+		var graylog2Client = dgram.createSocket("udp4");
 		graylog2Client.send(message, 0, message.length, GLOBAL.graylogPort, GLOBAL.graylogHost);
 		graylog2Client.close();
 	} catch(e) { 

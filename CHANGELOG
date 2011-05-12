@@ -1,7 +1,5 @@
-0.0.3: May 12, 2011
+0.0.2, 0.0.3, 0.0.4: May 12, 2011
 * Exceptions in case the graylog2 is not running
-
-0.0.2: May 12, 2011
 * GLOBAL.graylogToConsole added
 * CHANGELOG added
 * Bugfixes
