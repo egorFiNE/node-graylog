@@ -5,6 +5,7 @@ GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
 GLOBAL.LOG_CRIT=2;     // critical conditions
 GLOBAL.LOG_ERR=3;      // error conditions
+GLOBAL.LOG_ERROR=3;    // because people WILL typo
 GLOBAL.LOG_WARNING=4;  // warning conditions
 GLOBAL.LOG_NOTICE=5;   // normal, but significant, condition
 GLOBAL.LOG_INFO=6;     // informational message

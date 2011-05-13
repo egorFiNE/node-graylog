@@ -1,6 +1,7 @@
 0.0.5: May 14, 2011
 * GLOBAL.graylogFacility
 * Limit message size to 8k
+* Misc typo fixes
 
 0.0.2, 0.0.3, 0.0.4: May 12, 2011
 * Exceptions in case the graylog2 is not running
