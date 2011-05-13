@@ -51,7 +51,7 @@ You can add custom fields to the options:
 
 ## Options
 
-* <code>facility</code> - by default, it's "Node.js"
+* <code>facility</code> - by default it's set to <code>GLOBAL.graylogFacility</code>.
 * <code>level</code> - syslog levels, one of: <code>LOG_EMERG</code>, <code>LOG_ALERT</code>, <code>LOG_CRIT</code>, <code>LOG_ERR</code>, <code>LOG_WARNING</code>, <code>LOG_NOTICE</code>, <code>LOG_INFO</code> (default), <code>LOG_DEBUG</code>.
 * <code>timestamp</code> - unixtime of log event, by default it's now
 * <code>host</code> - by default, it's auto detected
@@ -61,6 +61,8 @@ You can add custom fields to the options:
 You can set <code>GLOBAL.graylogHost</code> and <code>GLOBAL.graylogPort</code> to the host and port of the Graylog2 server. By defaults it's <code>localhost</code> and <code>12201</code>.
 
 You can set <code>GLOBAL.graylogToConsole</code> to <code>true</code> to log JSON entries to console as well (useful for development in case you don't want to have graylog2 running on your workstation).
+
+You should set <code>GLOBAL.graylogFacility</code> to the name of your application. By default it's set to "Node.js". 
 
 ## Modification of the GLOBAL object?! But why?
 

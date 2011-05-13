@@ -14,6 +14,7 @@ GLOBAL.graylogHost = 'localhost';
 GLOBAL.graylogPort = 12201;
 GLOBAL.graylogHostname = require('os').hostname();
 GLOBAL.graylogToConsole = false;
+GLOBAL.graylogFacility = 'Node.js';
 
 
 function log(shortMessage, a, b) {
@@ -29,7 +30,7 @@ function log(shortMessage, a, b) {
 	opts.timestamp = opts.timestamp || new Date().getTime()/1000 >> 0;
 	opts.host = opts.host || GLOBAL.graylogHostname;
 	opts.level = opts.level || LOG_INFO;
-	opts.facility = opts.facility || "Node.js";
+	opts.facility = opts.facility || GLOBAL.graylogFacility;
 
 	opts.short_message = shortMessage;
 	
@@ -39,6 +40,10 @@ function log(shortMessage, a, b) {
 	}
 
 	var message = compress(logString);
+	if (message.length>8192) { // FIXME: support chunked
+		sys.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n"+logString);
+		return;
+	}
 
 	try { 
 		var graylog2Client = dgram.createSocket("udp4");
