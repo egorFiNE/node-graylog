@@ -19,6 +19,34 @@ GLOBAL.graylogFacility = 'Node.js';
 GLOBAL.graylogSequence = 0;
 
 
+function _logToConsole(shortMessage, opts) {
+	var consoleString = shortMessage;
+
+	if (opts.full_message) {
+		consoleString+="("+opts.full_message+")\n";
+	}
+
+	var additionalFields = [];
+	Object.keys(opts).forEach(function(key) {
+		if (key[0]=='_' && key!="_logSequence") {
+			additionalFields.push(
+				"  " +
+				key.substr(1,1024) +
+				": " +
+				'\033[' + 34 + 'm' + 
+				opts[key] +
+				'\033[' + 39 + 'm'
+			);
+		}
+	});
+
+	if (additionalFields.length>0) {
+		consoleString+="\n"+additionalFields.join("\n");
+	}
+
+	console.log(consoleString);
+}
+
 function log(shortMessage, a, b) {
 	var opts = {};
 	if (typeof a == 'string'){
@@ -33,18 +61,18 @@ function log(shortMessage, a, b) {
 	opts.host = opts.host || GLOBAL.graylogHostname;
 	opts.level = opts.level || LOG_INFO;
 	opts.facility = opts.facility || GLOBAL.graylogFacility;
+
 	if (GLOBAL.graylogSequence) {
 		opts['_logSequence'] = GLOBAL.graylogSequence++;
 	}
 
 	opts.short_message = shortMessage;
 	
-	var logString = JSON.stringify(opts);
 	if (GLOBAL.graylogToConsole) { 
-		console.log(logString);
+		_logToConsole(shortMessage, opts);
 	}
 
-	var message = compress(logString);
+	var message = compress(JSON.stringify(opts));
 	if (message.length>8192) { // FIXME: support chunked
 		sys.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n"+logString);
 		return;
