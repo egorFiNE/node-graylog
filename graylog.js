@@ -16,6 +16,7 @@ GLOBAL.graylogPort = 12201;
 GLOBAL.graylogHostname = require('os').hostname();
 GLOBAL.graylogToConsole = false;
 GLOBAL.graylogFacility = 'Node.js';
+GLOBAL.graylogSequence = 0;
 
 
 function log(shortMessage, a, b) {
@@ -32,6 +33,9 @@ function log(shortMessage, a, b) {
 	opts.host = opts.host || GLOBAL.graylogHostname;
 	opts.level = opts.level || LOG_INFO;
 	opts.facility = opts.facility || GLOBAL.graylogFacility;
+	if (GLOBAL.graylogSequence) {
+		opts['_logSequence'] = GLOBAL.graylogSequence++;
+	}
 
 	opts.short_message = shortMessage;
 	

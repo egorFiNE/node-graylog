@@ -64,6 +64,8 @@ You can set <code>GLOBAL.graylogToConsole</code> to <code>true</code> to log JSO
 
 You should set <code>GLOBAL.graylogFacility</code> to the name of your application. By default it's set to "Node.js". 
 
+You can set <code>GLOBAL.graylogSequence</code> to a integer non-zero value to have an auto-incremented <code>_graylogSequence</code> field sent to graylog with each log entry. Due to the fact that UDP packets are not guaranteed to be received in the same order as sent, you might need a sequence number to recover the course of events. 
+
 ## Modification of the GLOBAL object?! But why?
 
 I know, it's wrong. However I like it that way and I truly believe that logger function must be the easiest to call for the programmer to never hesitate using it. So I think that logger functions should be one of the extremely few cases where global namespace pollution is feasible. 
