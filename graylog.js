@@ -23,7 +23,7 @@ function _logToConsole(shortMessage, opts) {
 	var consoleString = shortMessage;
 
 	if (opts.full_message) {
-		consoleString+="("+opts.full_message+")\n";
+		consoleString+=" ("+opts.full_message+")\n";
 	}
 
 	var additionalFields = [];
