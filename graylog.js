@@ -1,5 +1,13 @@
-compress = require('compress-buffer').compress;
-dgram = require('dgram');
+var compress = require('compress-buffer').compress;
+
+var dgram;
+try {
+	// use legacy version until UV is mature enough. 
+	// Right now, at node 0.5.7, UV crashes and legacy version doesn't work anyway. 
+	dgram = require('dgram_legacy');
+} catch (e) {
+	dgram = require('dgram');
+}
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately

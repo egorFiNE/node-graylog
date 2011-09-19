@@ -49,6 +49,10 @@ You can add custom fields to the options:
 	});
 ```
 
+## Node.js 0.5.x warning
+
+Node.js 0.5 is transitioning to another event I/O library. Right now at version 0.5.7 UDP datagrams are broken and won't work. 
+
 ## Options
 
 * <code>facility</code> - by default it's set to <code>GLOBAL.graylogFacility</code>.
@@ -65,6 +69,10 @@ You can set <code>GLOBAL.graylogToConsole</code> to <code>true</code> to log JSO
 You should set <code>GLOBAL.graylogFacility</code> to the name of your application. By default it's set to "Node.js". 
 
 You can set <code>GLOBAL.graylogSequence</code> to a integer non-zero value (set it to 1) to have an auto-incremented <code>_graylogSequence</code> field sent to graylog with each log entry. Due to the fact that UDP packets are not guaranteed to be received in the same order as sent, you might need a sequence number to recover the course of events. 
+
+## Example
+
+See <code>sayHello.js</code>.
 
 ## Modification of the GLOBAL object?! But why?
 
