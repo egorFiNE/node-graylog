@@ -1,13 +1,6 @@
 var compress = require('compress-buffer').compress;
-
-var dgram;
-try {
-	// use legacy version until UV is mature enough. 
-	// Right now, at node 0.5.7, UV crashes and legacy version doesn't work anyway. 
-	dgram = require('dgram_legacy');
-} catch (e) {
-	dgram = require('dgram');
-}
+var dgram = require('dgram');
+var util = require('util');
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
@@ -80,15 +73,15 @@ function log(shortMessage, a, b) {
 		_logToConsole(shortMessage, opts);
 	}
 
-	var message = compress(JSON.stringify(opts));
+	var message = compress(new Buffer(JSON.stringify(opts)));
 	if (message.length>8192) { // FIXME: support chunked
-		sys.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n"+logString);
+		util.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n"+logString);
 		return;
 	}
 
 	try { 
 		var graylog2Client = dgram.createSocket("udp4");
-		graylog2Client.send(message, 0, message.length, GLOBAL.graylogPort, GLOBAL.graylogHost);
+		graylog2Client.send(message, 0, message.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function() {});
 		graylog2Client.close();
 	} catch(e) { 
 	}

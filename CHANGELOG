@@ -1,3 +1,6 @@
+0.0.10: November 6, 2011
+* Support node 0.6.0+
+
 0.0.9: September 19, 2011
 * Work around node 0.5.x crashes
 * Added 0.5.x notes
