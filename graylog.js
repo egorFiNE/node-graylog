@@ -73,22 +73,23 @@ function log(shortMessage, a, b) {
 		_logToConsole(shortMessage, opts);
 	}
 
-    var message = new Buffer(JSON.stringify(opts));
-    zlib.deflate(message, function (err, cmprssdMsg) {
-        if (err) {
-            return;
-        }
+	var message = new Buffer(JSON.stringify(opts));
+	zlib.deflate(message, function (err, compressedMessage) {
+		if (err) {
+			return;
+		}
 
-        if (cmprssdMsg.length>8192) { // FIXME: support chunked
-            util.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n" + message.toString());
-            return;
-        }
+		if (compressedMessage.length>8192) { // FIXME: support chunked
+			util.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n" + message.toString());
+			return;
+		}
 
-        var graylog2Client = dgram.createSocket("udp4");
-        graylog2Client.send(cmprssdMsg, 0, cmprssdMsg.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
-            graylog2Client.close();
-        });
-    });
+		var graylog2Client = dgram.createSocket("udp4");
+		graylog2Client.send(compressedMessage, 0, compressedMessage.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
+			graylog2Client.close();
+		});
+	});
 }
 
 GLOBAL.log = log;
+
