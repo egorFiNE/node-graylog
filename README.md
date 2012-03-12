@@ -99,3 +99,6 @@ See LICENSE file. Basically, it's a kind of "do-whatever-you-want-for-free" lice
 
 Egor Egorov <me@egorfine.com>
 
+## Contributors
+
+* danlangford (dan L) 
