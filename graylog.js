@@ -1,6 +1,6 @@
-var compress = require('compress-buffer').compress;
-var dgram = require('dgram');
-var util = require('util');
+var zlib = require('zlib'),
+    dgram = require('dgram'),
+    util = require('util');
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
@@ -45,7 +45,7 @@ function _logToConsole(shortMessage, opts) {
 		consoleString+="\n"+additionalFields.join("\n");
 	}
 
-	console.log(consoleString);
+	util.log(consoleString);
 }
 
 function log(shortMessage, a, b) {
@@ -60,7 +60,7 @@ function log(shortMessage, a, b) {
 	opts.version="1.0";
 	opts.timestamp = opts.timestamp || new Date().getTime()/1000 >> 0;
 	opts.host = opts.host || GLOBAL.graylogHostname;
-	opts.level = opts.level || LOG_INFO;
+	opts.level = opts.level || GLOBAL.LOG_INFO;
 	opts.facility = opts.facility || GLOBAL.graylogFacility;
 
 	if (GLOBAL.graylogSequence) {
@@ -73,18 +73,22 @@ function log(shortMessage, a, b) {
 		_logToConsole(shortMessage, opts);
 	}
 
-	var message = compress(new Buffer(JSON.stringify(opts)));
-	if (message.length>8192) { // FIXME: support chunked
-		util.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n"+logString);
-		return;
-	}
+    var message = new Buffer(JSON.stringify(opts));
+    zlib.deflate(message, function (err, cmprssdMsg) {
+        if (err) {
+            return;
+        }
 
-	try { 
-		var graylog2Client = dgram.createSocket("udp4");
-		graylog2Client.send(message, 0, message.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function() {});
-		graylog2Client.close();
-	} catch(e) { 
-	}
+        if (cmprssdMsg.length>8192) { // FIXME: support chunked
+            util.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n" + message.toString());
+            return;
+        }
+
+        var graylog2Client = dgram.createSocket("udp4");
+        graylog2Client.send(cmprssdMsg, 0, cmprssdMsg.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
+            graylog2Client.close();
+        });
+    });
 }
 
 GLOBAL.log = log;
