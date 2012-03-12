@@ -49,10 +49,6 @@ You can add custom fields to the options:
 	});
 ```
 
-## Node.js 0.5.x warning
-
-Node.js 0.5 is transitioning to another event I/O library. Right now at version 0.5.7 UDP datagrams are broken and won't work. 
-
 ## Options
 
 * <code>facility</code> - by default it's set to <code>GLOBAL.graylogFacility</code>.
