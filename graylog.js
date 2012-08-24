@@ -106,7 +106,7 @@ function retrieveFileInfo(opts){
 		match;
 
 	for(var i=0, len = stack.length; i<len; i++){
-		if((match = stack[i].match(/^\s*at\s[^\(]\(([^\):]+):(\d+):\d+\)/))){
+		if((match = stack[i].match(/^\s*at\s[^\(]+\(([^\):]+):(\d+):\d+\)/))){
 			if(__filename.substr(-match[1].length) == match[1]){
 				continue;
 			}
