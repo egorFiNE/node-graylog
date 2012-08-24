@@ -63,6 +63,10 @@ function log(shortMessage, a, b) {
 	opts.level = opts.level || GLOBAL.LOG_INFO;
 	opts.facility = opts.facility || GLOBAL.graylogFacility;
 
+	if(!opts.file){
+		retrieveFileInfo(opts);
+	}
+
 	if (GLOBAL.graylogSequence) {
 		opts['_logSequence'] = GLOBAL.graylogSequence++;
 	}
@@ -89,6 +93,29 @@ function log(shortMessage, a, b) {
 			graylog2Client.close();
 		});
 	});
+}
+
+/**
+ * Retrieves the filename and line number where log() was called
+ *
+ * @param {Object} opts The options object that will be altered with 'file' and 'line' properties
+ */
+function retrieveFileInfo(opts){
+	var err = new Error("test"),
+		stack = (err.stack || "").toString().split(/\r?\n/),
+		match;
+
+	for(var i=0, len = stack.length; i<len; i++){
+		if((match = stack[i].match(/^\s*at\s[^\(]\(([^\):]+):(\d+):\d+\)/))){
+			if(__filename.substr(-match[1].length) == match[1]){
+				continue;
+			}
+			opts.file = match[1];
+			opts.line = Number(match[2]) || 0;
+			break;
+		}
+	}
+
 }
 
 GLOBAL.log = log;
