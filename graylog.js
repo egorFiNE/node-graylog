@@ -63,7 +63,7 @@ function log(shortMessage, a, b) {
 	opts.level = opts.level || GLOBAL.LOG_INFO;
 	opts.facility = opts.facility || GLOBAL.graylogFacility;
 
-	if(!opts.file){
+	if (opts.stack) {
 		retrieveFileInfo(opts);
 	}
 

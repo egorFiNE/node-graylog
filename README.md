@@ -53,8 +53,9 @@ You can add custom fields to the options:
 
 * <code>facility</code> - by default it's set to <code>GLOBAL.graylogFacility</code>.
 * <code>level</code> - syslog levels, one of: <code>LOG_EMERG</code>, <code>LOG_ALERT</code>, <code>LOG_CRIT</code>, <code>LOG_ERR</code>, <code>LOG_WARNING</code>, <code>LOG_NOTICE</code>, <code>LOG_INFO</code> (default), <code>LOG_DEBUG</code>.
-* <code>timestamp</code> - unixtime of log event, by default it's now
-* <code>host</code> - by default, it's auto detected
+* <code>timestamp</code> - unixtime of log event, by default it's now.
+* <code>host</code> - by default, it's auto detected.
+* <code>stack</code> - if set to <code>true</code>, log will contain source file name and line number.
 
 ## Additional settings
 
@@ -98,3 +99,4 @@ Egor Egorov <me@egorfine.com>
 ## Contributors
 
 * danlangford (dan L) 
+* andris9
