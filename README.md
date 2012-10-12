@@ -100,3 +100,4 @@ Egor Egorov <me@egorfine.com>
 
 * danlangford (dan L) 
 * andris9
+* pilsy 
