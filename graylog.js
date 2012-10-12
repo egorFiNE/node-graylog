@@ -23,7 +23,7 @@ GLOBAL.graylogSequence = 0;
 GLOBAL.chunkSize = 192; // 8192 is the maximum
 
 function generateMessageId() {
-	return parseFloat(Date.now() + Math.floor(Math.random()*10000));
+	return '' + (Date.now() + Math.floor(Math.random()*10000));
 }
 
 function _logToConsole(shortMessage, opts) {
@@ -91,12 +91,14 @@ function log(shortMessage, a, b) {
 
 		var graylog2Client = dgram.createSocket("udp4");
 
-		if (compressedMessage.length>GLOBAL.chunkSize) {
+		console.log(compressedMessage.length)
+		if (compressedMessage.length > GLOBAL.chunkSize) {
 			var regex = new RegExp('.{' + GLOBAL.chunkSize + '}', 'g')
 			  , messageString = compressedMessage.toString()
 			  ,	chunks = messageString.match(regex)
 			  , messageId = generateMessageId()
-			  , sequenceSize = chunks.length;
+			  , sequenceSize = chunks.length
+			  , offset = 0;
 
 			if (sequenceSize > 128) {
 				util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + message.toString());
@@ -105,14 +107,23 @@ function log(shortMessage, a, b) {
 
 			chunks.forEach(function(chunk, sequence) {
 				var chunkSize = chunk.length
-				  ,	hash = md5(messageId, null, true).substring(0, 8)
-				  , start = buffer.pack('CC', 30, 15).toString()
-				  , middle = buffer.pack('CC', sequence, sequenceSize).toString()
-				  , dataString = [start, hash, middle, chunk].join('');
+				  ,	bytesToSend = (offset + chunkSize < compressedMessage.length ? this.chunkSize : compressedMessage.length - offset)
+				  , dataChunk = new Buffer(chunkSize + 12);
 
-				graylog2Client.send(new Buffer(dataString), 0, dataString.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
+				dataChunk[0] = 0x1e;
+				dataChunk[1] = 0x0f;
+				dataChunk.write(messageId, 2, 8, 'ascii');
+				dataChunk[10] = sequence;
+				dataChunk[11] = sequenceSize;
+
+				console.log(offset, offset+bytesToSend)
+				compressedMessage.copy(dataChunk, 12, offset, offset+bytesToSend)
+        		offset += bytesToSend;
+
+
+				graylog2Client.send(dataChunk, 0, bytesToSend, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
 					if (sequence + 1 == sequenceSize) {
-						console.log('Last chunk')
+						console.log('closing UDP Client');
 						graylog2Client.close();
 					}
 				});
