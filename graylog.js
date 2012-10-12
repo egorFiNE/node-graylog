@@ -1,6 +1,8 @@
-var zlib = require('zlib'),
-    dgram = require('dgram'),
-    util = require('util');
+var zlib = require('zlib')
+  , dgram = require('dgram')
+  , util = require('util')
+  , md5 = require('blueimp-md5').md5
+  , buffer = require('bufferpack');
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
@@ -18,16 +20,20 @@ GLOBAL.graylogHostname = require('os').hostname();
 GLOBAL.graylogToConsole = false;
 GLOBAL.graylogFacility = 'Node.js';
 GLOBAL.graylogSequence = 0;
+GLOBAL.chunkSize = 192; // 8192 is the maximum
 
+function generateMessageId() {
+	return parseFloat(Date.now() + Math.floor(Math.random()*10000));
+}
 
 function _logToConsole(shortMessage, opts) {
-	var consoleString = shortMessage;
+	var consoleString = shortMessage
+	  ,	additionalFields = [];
 
 	if (opts.full_message) {
 		consoleString+=" ("+opts.full_message+")\n";
 	}
 
-	var additionalFields = [];
 	Object.keys(opts).forEach(function(key) {
 		if (key[0]=='_' && key!="_logSequence") {
 			additionalFields.push(
@@ -83,12 +89,38 @@ function log(shortMessage, a, b) {
 			return;
 		}
 
-		if (compressedMessage.length>8192) { // FIXME: support chunked
-			util.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n" + message.toString());
+		var graylog2Client = dgram.createSocket("udp4");
+
+		if (compressedMessage.length>GLOBAL.chunkSize) {
+			var regex = new RegExp('.{' + GLOBAL.chunkSize + '}', 'g')
+			  , messageString = compressedMessage.toString()
+			  ,	chunks = messageString.match(regex)
+			  , messageId = generateMessageId()
+			  , sequenceSize = chunks.length;
+
+			if (sequenceSize > 128) {
+				util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + message.toString());
+				return;
+			}
+
+			chunks.forEach(function(chunk, sequence) {
+				var chunkSize = chunk.length
+				  ,	hash = md5(messageId, null, true).substring(0, 8)
+				  , start = buffer.pack('CC', 30, 15).toString()
+				  , middle = buffer.pack('CC', sequence, sequenceSize).toString()
+				  , dataString = [start, hash, middle, chunk].join('');
+
+				graylog2Client.send(new Buffer(dataString), 0, dataString.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
+					if (sequence + 1 == sequenceSize) {
+						console.log('Last chunk')
+						graylog2Client.close();
+					}
+				});
+			});
+
 			return;
 		}
 
-		var graylog2Client = dgram.createSocket("udp4");
 		graylog2Client.send(compressedMessage, 0, compressedMessage.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
 			graylog2Client.close();
 		});
