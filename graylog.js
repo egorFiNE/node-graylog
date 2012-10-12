@@ -60,7 +60,7 @@ function log(shortMessage, a, b) {
 	opts.version="1.0";
 	opts.timestamp = opts.timestamp || new Date().getTime()/1000 >> 0;
 	opts.host = opts.host || GLOBAL.graylogHostname;
-	opts.level = opts.level || GLOBAL.LOG_INFO;
+	opts.level = opts.level !== undefined ? opts.level : GLOBAL.LOG_INFO;
 	opts.facility = opts.facility || GLOBAL.graylogFacility;
 
 	if (opts.stack) {
