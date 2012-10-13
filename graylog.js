@@ -20,7 +20,7 @@ GLOBAL.graylogHostname = require('os').hostname();
 GLOBAL.graylogToConsole = false;
 GLOBAL.graylogFacility = 'Node.js';
 GLOBAL.graylogSequence = 0;
-GLOBAL.chunkSize = 8192; // 8192 is the maximum
+GLOBAL.graylogChunkSize = 8192; // 8192 is the maximum
 
 function generateMessageId() {
 	return '' + (Date.now() + Math.floor(Math.random()*10000));
@@ -96,14 +96,14 @@ function log(shortMessage, a, b) {
 				});
 			};
 
-		if (compressedMessage.length > GLOBAL.chunkSize) {
+		if (compressedMessage.length > GLOBAL.graylogChunkSize) {
 			var messageId = generateMessageId()
-			  , sequenceSize = Math.ceil(compressedMessage.length / GLOBAL.chunkSize)
+			  , sequenceSize = Math.ceil(compressedMessage.length / GLOBAL.graylogChunkSize)
 			  , byteOffset = 0
 			  , chunksWritten = 0
 			  , send = function(addr) {
 					for(var sequence=0; sequence<sequenceSize; sequence++) {
-						var chunkBytes = (byteOffset + GLOBAL.chunkSize) < compressedMessage.length ? GLOBAL.chunkSize : (compressedMessage.length - byteOffset)
+						var chunkBytes = (byteOffset + GLOBAL.graylogChunkSize) < compressedMessage.length ? GLOBAL.graylogChunkSize : (compressedMessage.length - byteOffset)
 						  , chunk = new Buffer(chunkBytes + 12);
 
 						chunk[0] = 0x1e;
