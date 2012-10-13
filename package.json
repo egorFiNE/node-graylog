@@ -10,9 +10,5 @@
     "url": "http://github.com/egorfine/node-graylog.git"
   },
   "engine": [ "node >=0.6.0" ],
-	"main" : "./graylog.js",
-  "dependencies": {
-    "blueimp-md5": "*",
-    "bufferpack": "*"
-  }
+  "main" : "./graylog.js"
 }

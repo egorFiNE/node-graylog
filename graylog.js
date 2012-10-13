@@ -1,8 +1,6 @@
 var zlib = require('zlib')
   , dgram = require('dgram')
-  , util = require('util')
-  , md5 = require('blueimp-md5').md5
-  , buffer = require('bufferpack');
+  , util = require('util');
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
@@ -91,43 +89,37 @@ function log(shortMessage, a, b) {
 
 		var graylog2Client = dgram.createSocket("udp4");
 
-		console.log(compressedMessage.length)
 		if (compressedMessage.length > GLOBAL.chunkSize) {
-			var regex = new RegExp('.{' + GLOBAL.chunkSize + '}', 'g')
-			  , messageString = compressedMessage.toString()
-			  ,	chunks = messageString.match(regex)
-			  , messageId = generateMessageId()
-			  , sequenceSize = chunks.length
-			  , offset = 0;
+			var messageId = generateMessageId()
+			  , sequenceSize = Math.ceil(compressedMessage.length / GLOBAL.chunkSize)
+			  , byteOffset = 0
+			  , chunksWritten = 0;
 
 			if (sequenceSize > 128) {
 				util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + message.toString());
 				return;
 			}
 
-			chunks.forEach(function(chunk, sequence) {
-				var chunkSize = chunk.length
-				  ,	bytesToSend = (offset + chunkSize < compressedMessage.length ? this.chunkSize : compressedMessage.length - offset)
-				  , dataChunk = new Buffer(chunkSize + 12);
+			for(var sequence=0; sequence<sequenceSize; sequence++) {
+				var chunkBytes = (byteOffset + GLOBAL.chunkSize) < compressedMessage.length ? GLOBAL.chunkSize : (compressedMessage.length - byteOffset)
+				  ,	chunk = new Buffer(chunkBytes + 12);
 
-				dataChunk[0] = 0x1e;
-				dataChunk[1] = 0x0f;
-				dataChunk.write(messageId, 2, 8, 'ascii');
-				dataChunk[10] = sequence;
-				dataChunk[11] = sequenceSize;
+				chunk[0] = 0x1e;
+				chunk[1] = 0x0f;
+				chunk.write(messageId, 2, 8, 'ascii');
+				chunk[10] = sequence;
+				chunk[11] = sequenceSize;
+				compressedMessage.copy(chunk, 12, byteOffset, byteOffset+chunkBytes);
 
-				console.log(offset, offset+bytesToSend)
-				compressedMessage.copy(dataChunk, 12, offset, offset+bytesToSend)
-        		offset += bytesToSend;
-
-
-				graylog2Client.send(dataChunk, 0, bytesToSend, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
-					if (sequence + 1 == sequenceSize) {
-						console.log('closing UDP Client');
+				byteOffset += chunkBytes;
+				
+				graylog2Client.send(chunk, 0, chunk.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
+					chunksWritten++;
+					if (chunksWritten == sequenceSize) {
 						graylog2Client.close();
 					}
 				});
-			});
+			}
 
 			return;
 		}
