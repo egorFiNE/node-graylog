@@ -1,6 +1,8 @@
 var zlib = require('zlib')
   , dgram = require('dgram')
-  , util = require('util');
+  , util = require('util')
+  , dns = require('dns')
+  , isIp = /\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
@@ -26,7 +28,7 @@ function generateMessageId() {
 
 function _logToConsole(shortMessage, opts) {
 	var consoleString = shortMessage
-	  ,	additionalFields = [];
+	  , additionalFields = [];
 
 	if (opts.full_message) {
 		consoleString+=" ("+opts.full_message+")\n";
@@ -87,46 +89,55 @@ function log(shortMessage, a, b) {
 			return;
 		}
 
-		var graylog2Client = dgram.createSocket("udp4");
+		var graylog2Client = dgram.createSocket("udp4")
+		  , send = function(addr) {
+				graylog2Client.send(compressedMessage, 0, compressedMessage.length, GLOBAL.graylogPort, addr, function (err, byteCount) {
+					graylog2Client.close();
+				});
+			};
 
 		if (compressedMessage.length > GLOBAL.chunkSize) {
 			var messageId = generateMessageId()
 			  , sequenceSize = Math.ceil(compressedMessage.length / GLOBAL.chunkSize)
 			  , byteOffset = 0
-			  , chunksWritten = 0;
+			  , chunksWritten = 0
+			  , send = function(addr) {
+					for(var sequence=0; sequence<sequenceSize; sequence++) {
+						var chunkBytes = (byteOffset + GLOBAL.chunkSize) < compressedMessage.length ? GLOBAL.chunkSize : (compressedMessage.length - byteOffset)
+						  , chunk = new Buffer(chunkBytes + 12);
+
+						chunk[0] = 0x1e;
+						chunk[1] = 0x0f;
+						chunk.write(messageId, 2, 8, 'ascii');
+						chunk[10] = sequence;
+						chunk[11] = sequenceSize;
+						compressedMessage.copy(chunk, 12, byteOffset, byteOffset+chunkBytes);
+
+						byteOffset += chunkBytes;
+						
+						graylog2Client.send(chunk, 0, chunk.length, GLOBAL.graylogPort, addr, function (err, byteCount) {
+							chunksWritten++;
+							if (chunksWritten == sequenceSize) {
+								graylog2Client.close();
+							}
+						});
+					}
+			  }
 
 			if (sequenceSize > 128) {
 				util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + message.toString());
 				return;
 			}
-
-			for(var sequence=0; sequence<sequenceSize; sequence++) {
-				var chunkBytes = (byteOffset + GLOBAL.chunkSize) < compressedMessage.length ? GLOBAL.chunkSize : (compressedMessage.length - byteOffset)
-				  ,	chunk = new Buffer(chunkBytes + 12);
-
-				chunk[0] = 0x1e;
-				chunk[1] = 0x0f;
-				chunk.write(messageId, 2, 8, 'ascii');
-				chunk[10] = sequence;
-				chunk[11] = sequenceSize;
-				compressedMessage.copy(chunk, 12, byteOffset, byteOffset+chunkBytes);
-
-				byteOffset += chunkBytes;
-				
-				graylog2Client.send(chunk, 0, chunk.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
-					chunksWritten++;
-					if (chunksWritten == sequenceSize) {
-						graylog2Client.close();
-					}
-				});
-			}
-
-			return;
 		}
 
-		graylog2Client.send(compressedMessage, 0, compressedMessage.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
-			graylog2Client.close();
-		});
+		!isIp.test(GLOBAL.graylogHost) 
+		?	dns.resolve4(GLOBAL.graylogHost, function(dnsErr, addr) {
+				if (dnsErr) 
+					return
+
+				send(addr[0]);
+			})
+		:	send(GLOBAL.graylogHost);
 	});
 }
 
