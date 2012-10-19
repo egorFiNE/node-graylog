@@ -20,7 +20,7 @@ GLOBAL.graylogHostname = require('os').hostname();
 GLOBAL.graylogToConsole = false;
 GLOBAL.graylogFacility = 'Node.js';
 GLOBAL.graylogSequence = 0;
-GLOBAL.graylogChunkSize = 8192; // 8192 is the maximum
+GLOBAL.graylogChunkSize = 1100; // 8192 is the maximum
 
 function generateMessageId() {
 	return '' + (Date.now() + Math.floor(Math.random()*10000));
