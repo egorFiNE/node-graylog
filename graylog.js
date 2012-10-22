@@ -93,6 +93,17 @@ function send(graylog2Client, compressedMessage, address) {
 	});
 }
 
+function resolveAndSend(graylog2Client, compressedMessage, dnsName, sendFunc) {
+	dns.resolve4(GLOBAL.graylogHost, function(dnsErr, addr) {
+		if (dnsErr) {
+			util.debug("Graylog oops: DNS Error (" + dnsErr + "), I print to stderr and give up: \n" + message.toString());
+			return;
+		}
+
+		sendFunc(graylog2Client, compressedMessage, addr[0]);
+	});
+}
+
 function log(shortMessage, a, b) {
 	var opts = {};
 	if (typeof a == 'string'){
@@ -122,28 +133,22 @@ function log(shortMessage, a, b) {
 		_logToConsole(shortMessage, opts);
 	}
 
-	var message = new Buffer(JSON.stringify(opts));
+	var message = new Buffer(JSON.stringify(opts))
+	  ,	sendFunc = send;
+
 	zlib.deflate(message, function (err, compressedMessage) {
 		if (err) {
 			return;
 		}
 
 		var graylog2Client = dgram.createSocket("udp4");
-
 		if (compressedMessage.length > GLOBAL.graylogChunkSize) {
-			return sendChunked(graylog2Client, compressedMessage);
+			sendFunc = sendChunked;
 		}
 
 		!isIp.test(GLOBAL.graylogHost) 
-		?	dns.resolve4(GLOBAL.graylogHost, function(dnsErr, addr) {
-				if (dnsErr) {
-					util.debug("Graylog oops: DNS Error (" + dnsErr + "), I print to stderr and give up: \n" + message.toString());
-					return;
-				}
-
-				sendChunked(graylog2Client, compressedMessage, addr[0]);
-			})
-		:	send(graylog2Client, compressedMessage, GLOBAL.graylogHost);
+		?	resolveAndSend(graylog2Client, compressedMessage, GLOBAL.graylogHost, sendFunc)
+		:	sendFunc(graylog2Client, compressedMessage, GLOBAL.graylogHost);
 	});
 }
 
