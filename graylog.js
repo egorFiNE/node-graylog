@@ -134,7 +134,7 @@ function log(shortMessage, a, b) {
 	}
 
 	var message = new Buffer(JSON.stringify(opts))
-	  ,	sendFunc = send;
+	  , sendFunc = send;
 
 	zlib.deflate(message, function (err, compressedMessage) {
 		if (err) {
