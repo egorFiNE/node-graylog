@@ -1,6 +1,8 @@
-var zlib = require('zlib'),
-    dgram = require('dgram'),
-    util = require('util');
+var zlib = require('zlib')
+  , dgram = require('dgram')
+  , util = require('util')
+  , dns = require('dns')
+  , isIp = /\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
@@ -18,16 +20,20 @@ GLOBAL.graylogHostname = require('os').hostname();
 GLOBAL.graylogToConsole = false;
 GLOBAL.graylogFacility = 'Node.js';
 GLOBAL.graylogSequence = 0;
+GLOBAL.graylogChunkSize = 1100; // 8192 is the maximum
 
+function generateMessageId() {
+	return '' + (Date.now() + Math.floor(Math.random()*10000));
+}
 
 function _logToConsole(shortMessage, opts) {
-	var consoleString = shortMessage;
+	var consoleString = shortMessage
+	  , additionalFields = [];
 
 	if (opts.full_message) {
 		consoleString+=" ("+opts.full_message+")\n";
 	}
 
-	var additionalFields = [];
 	Object.keys(opts).forEach(function(key) {
 		if (key[0]=='_' && key!="_logSequence") {
 			additionalFields.push(
@@ -46,6 +52,56 @@ function _logToConsole(shortMessage, opts) {
 	}
 
 	util.log(consoleString);
+}
+
+function sendChunked(graylog2Client, compressedMessage, address) {
+	var messageId = generateMessageId()
+	  , sequenceSize = Math.ceil(compressedMessage.length / GLOBAL.graylogChunkSize)
+	  , byteOffset = 0
+	  , chunksWritten = 0;
+
+	if (sequenceSize > 128) {
+		util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + message.toString());
+		return;
+	}
+
+	for(var sequence=0; sequence<sequenceSize; sequence++) {
+		var chunkBytes = (byteOffset + GLOBAL.graylogChunkSize) < compressedMessage.length ? GLOBAL.graylogChunkSize : (compressedMessage.length - byteOffset)
+		  , chunk = new Buffer(chunkBytes + 12);
+
+		chunk[0] = 0x1e;
+		chunk[1] = 0x0f;
+		chunk.write(messageId, 2, 8, 'ascii');
+		chunk[10] = sequence;
+		chunk[11] = sequenceSize;
+		compressedMessage.copy(chunk, 12, byteOffset, byteOffset+chunkBytes);
+
+		byteOffset += chunkBytes;
+		
+		graylog2Client.send(chunk, 0, chunk.length, GLOBAL.graylogPort, address, function (err, byteCount) {
+			chunksWritten++;
+			if (chunksWritten == sequenceSize) {
+				graylog2Client.close();
+			}
+		});
+	}
+}
+
+function send(graylog2Client, compressedMessage, address) {
+	graylog2Client.send(compressedMessage, 0, compressedMessage.length, GLOBAL.graylogPort, address, function (err, byteCount) {
+		graylog2Client.close();
+	});
+}
+
+function resolveAndSend(graylog2Client, compressedMessage, dnsName, sendFunc) {
+	dns.resolve4(GLOBAL.graylogHost, function(dnsErr, addr) {
+		if (dnsErr) {
+			util.debug("Graylog oops: DNS Error (" + dnsErr + "), I print to stderr and give up: \n" + message.toString());
+			return;
+		}
+
+		sendFunc(graylog2Client, compressedMessage, addr[0]);
+	});
 }
 
 function log(shortMessage, a, b) {
@@ -77,21 +133,22 @@ function log(shortMessage, a, b) {
 		_logToConsole(shortMessage, opts);
 	}
 
-	var message = new Buffer(JSON.stringify(opts));
+	var message = new Buffer(JSON.stringify(opts))
+	  , sendFunc = send;
+
 	zlib.deflate(message, function (err, compressedMessage) {
 		if (err) {
 			return;
 		}
 
-		if (compressedMessage.length>8192) { // FIXME: support chunked
-			util.debug("Graylog oops: log message size > 8192, I print to stderr and give up: \n" + message.toString());
-			return;
+		var graylog2Client = dgram.createSocket("udp4");
+		if (compressedMessage.length > GLOBAL.graylogChunkSize) {
+			sendFunc = sendChunked;
 		}
 
-		var graylog2Client = dgram.createSocket("udp4");
-		graylog2Client.send(compressedMessage, 0, compressedMessage.length, GLOBAL.graylogPort, GLOBAL.graylogHost, function (err, byteCount) {
-			graylog2Client.close();
-		});
+		!isIp.test(GLOBAL.graylogHost) 
+		?	resolveAndSend(graylog2Client, compressedMessage, GLOBAL.graylogHost, sendFunc)
+		:	sendFunc(graylog2Client, compressedMessage, GLOBAL.graylogHost);
 	});
 }
 
