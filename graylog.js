@@ -1,8 +1,11 @@
-var zlib = require('zlib')
-  , dgram = require('dgram')
-  , util = require('util')
-  , dns = require('dns')
-  , isIp = /\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+var 
+	zlib = require('zlib'),
+	dgram = require('dgram'),
+	util = require('util'),
+	dns = require('dns');
+
+var 
+	isIpRegexp = /\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
@@ -27,8 +30,9 @@ function generateMessageId() {
 }
 
 function _logToConsole(shortMessage, opts) {
-	var consoleString = shortMessage
-	  , additionalFields = [];
+	var 
+		consoleString = shortMessage,
+		additionalFields = [];
 
 	if (opts.full_message) {
 		consoleString+=" ("+opts.full_message+")\n";
@@ -55,10 +59,11 @@ function _logToConsole(shortMessage, opts) {
 }
 
 function sendChunked(graylog2Client, compressedMessage, address) {
-	var messageId = generateMessageId()
-	  , sequenceSize = Math.ceil(compressedMessage.length / GLOBAL.graylogChunkSize)
-	  , byteOffset = 0
-	  , chunksWritten = 0;
+	var 
+		messageId = generateMessageId(),
+		sequenceSize = Math.ceil(compressedMessage.length / GLOBAL.graylogChunkSize),
+		byteOffset = 0,
+		chunksWritten = 0;
 
 	if (sequenceSize > 128) {
 		util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + message.toString());
@@ -66,8 +71,9 @@ function sendChunked(graylog2Client, compressedMessage, address) {
 	}
 
 	for(var sequence=0; sequence<sequenceSize; sequence++) {
-		var chunkBytes = (byteOffset + GLOBAL.graylogChunkSize) < compressedMessage.length ? GLOBAL.graylogChunkSize : (compressedMessage.length - byteOffset)
-		  , chunk = new Buffer(chunkBytes + 12);
+		var 
+			chunkBytes = (byteOffset + GLOBAL.graylogChunkSize) < compressedMessage.length ? GLOBAL.graylogChunkSize : (compressedMessage.length - byteOffset), 
+			chunk = new Buffer(chunkBytes + 12);
 
 		chunk[0] = 0x1e;
 		chunk[1] = 0x0f;
@@ -87,7 +93,7 @@ function sendChunked(graylog2Client, compressedMessage, address) {
 	}
 }
 
-function send(graylog2Client, compressedMessage, address) {
+function sendSingleShot(graylog2Client, compressedMessage, address) {
 	graylog2Client.send(compressedMessage, 0, compressedMessage.length, GLOBAL.graylogPort, address, function (err, byteCount) {
 		graylog2Client.close();
 	});
@@ -133,8 +139,9 @@ function log(shortMessage, a, b) {
 		_logToConsole(shortMessage, opts);
 	}
 
-	var message = new Buffer(JSON.stringify(opts))
-	  , sendFunc = send;
+	var 
+		message = new Buffer(JSON.stringify(opts)),
+		sendFunc = sendSingleShot;
 
 	zlib.deflate(message, function (err, compressedMessage) {
 		if (err) {
@@ -146,9 +153,11 @@ function log(shortMessage, a, b) {
 			sendFunc = sendChunked;
 		}
 
-		!isIp.test(GLOBAL.graylogHost) 
-		?	resolveAndSend(graylog2Client, compressedMessage, GLOBAL.graylogHost, sendFunc)
-		:	sendFunc(graylog2Client, compressedMessage, GLOBAL.graylogHost);
+		if (!isIpRegexp.test(GLOBAL.graylogHost)) {
+			resolveAndSend(graylog2Client, compressedMessage, GLOBAL.graylogHost, sendFunc);
+		} else { 
+			sendFunc(graylog2Client, compressedMessage, GLOBAL.graylogHost);
+		}
 	});
 }
 
@@ -162,9 +171,9 @@ function retrieveFileInfo(opts){
 		stack = (err.stack || "").toString().split(/\r?\n/),
 		match;
 
-	for(var i=0, len = stack.length; i<len; i++){
-		if((match = stack[i].match(/^\s*at\s[^\(]+\(([^\):]+):(\d+):\d+\)/))){
-			if(__filename.substr(-match[1].length) == match[1]){
+	for (var i=0, len = stack.length; i<len; i++){
+		if ((match = stack[i].match(/^\s*at\s[^\(]+\(([^\):]+):(\d+):\d+\)/))){
+			if (__filename.substr(-match[1].length) == match[1]){
 				continue;
 			}
 			opts.file = match[1];
@@ -172,7 +181,6 @@ function retrieveFileInfo(opts){
 			break;
 		}
 	}
-
 }
 
 GLOBAL.log = log;
