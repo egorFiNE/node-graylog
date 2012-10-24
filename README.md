@@ -67,6 +67,9 @@ You should set <code>GLOBAL.graylogFacility</code> to the name of your applicati
 
 You can set <code>GLOBAL.graylogSequence</code> to a integer non-zero value (set it to 1) to have an auto-incremented <code>_graylogSequence</code> field sent to graylog with each log entry. Due to the fact that UDP packets are not guaranteed to be received in the same order as sent, you might need a sequence number to recover the course of events. 
 
+You can set <code>GLOBAL.graylogChunkSize</code> to the maximum allowed bytes for a single UDP packet. Log messages higher than that will be sent in chunked encoding.  
+
+
 ## Example
 
 See <code>sayHello.js</code>.
@@ -83,18 +86,13 @@ It's a miracle. Get it at http://www.graylog2.org/
 
 	npm install .
 
-## TODO
-
-* Limit messages size to MTU size?..
-
-
 ## License
 
 See LICENSE file. Basically, it's a kind of "do-whatever-you-want-for-free" license.
 
 ## Author
 
-Egor Egorov <me@egorfine.com>
+Egor Egorov <me@egorfine.com>.
 
 ## Contributors
 
