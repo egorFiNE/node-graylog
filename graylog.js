@@ -2,10 +2,8 @@ var
 	zlib = require('zlib'),
 	dgram = require('dgram'),
 	util = require('util'),
-	dns = require('dns');
-
-var 
-	isIpRegexp = /\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+	dns = require('dns'),
+	net = require('net');
 
 GLOBAL.LOG_EMERG=0;    // system is unusable
 GLOBAL.LOG_ALERT=1;    // action must be taken immediately
@@ -153,7 +151,7 @@ function log(shortMessage, a, b) {
 			sendFunc = sendChunked;
 		}
 
-		if (!isIpRegexp.test(GLOBAL.graylogHost)) {
+		if (net.isIPv4(GLOBAL.graylogHost)) {
 			resolveAndSend(graylog2Client, compressedMessage, GLOBAL.graylogHost, sendFunc);
 		} else { 
 			sendFunc(graylog2Client, compressedMessage, GLOBAL.graylogHost);
