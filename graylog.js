@@ -151,7 +151,7 @@ function log(shortMessage, a, b) {
 			sendFunc = sendChunked;
 		}
 
-		if (net.isIPv4(GLOBAL.graylogHost)) {
+		if (!net.isIPv4(GLOBAL.graylogHost)) {
 			resolveAndSend(graylog2Client, compressedMessage, GLOBAL.graylogHost, sendFunc);
 		} else { 
 			sendFunc(graylog2Client, compressedMessage, GLOBAL.graylogHost);
