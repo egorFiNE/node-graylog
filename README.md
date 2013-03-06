@@ -69,6 +69,15 @@ You can set <code>GLOBAL.graylogSequence</code> to a integer non-zero value (set
 
 You can set <code>GLOBAL.graylogChunkSize</code> to the maximum allowed bytes for a single UDP packet. Log messages higher than that will be sent in chunked encoding.  
 
+You can set <code>GLOBAL.additionalFields</code> for any properties that would like to include on every log message.
+
+```   
+GLOBAL.additionalFields = {
+    _environment: "Dev",
+    _version: "1.0"
+}
+```  
+
 
 ## Example
 
