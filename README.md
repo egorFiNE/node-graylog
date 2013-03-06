@@ -71,7 +71,7 @@ You can set <code>GLOBAL.graylogChunkSize</code> to the maximum allowed bytes fo
 
 You can set <code>GLOBAL.additionalFields</code> for any properties that would like to include on every log message.
 
-```   
+```javascript
 GLOBAL.additionalFields = {
     _environment: "Dev",
     _version: "1.0"
