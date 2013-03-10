@@ -3,7 +3,7 @@
   "description": "Graylog2 client library for node.js",
 	"homepage" : "http://egorfine.github.com/node-graylog",
 	"bugs" : { "url" : "http://github.com/egorFiNE/node-graylog/issues" },
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Egor Egorov",
   "repository": {
     "type": "git",
