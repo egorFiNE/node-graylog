@@ -22,7 +22,7 @@ GLOBAL.graylogToConsole = false;
 GLOBAL.graylogFacility = 'Node.js';
 GLOBAL.graylogSequence = 0;
 GLOBAL.graylogChunkSize = 1100; // 8192 is the maximum
-GLOBAL.graylogAdditionalFields = {}
+GLOBAL.graylogAdditionalFields = {};
 
 function generateMessageId() {
 	return '' + (Date.now() + Math.floor(Math.random()*10000));
@@ -125,13 +125,13 @@ function log(shortMessage, a, b) {
 	opts.facility = opts.facility || GLOBAL.graylogFacility;
 
 	// Add global additional fields to the message
-    var additionalFields = GLOBAL.graylogAdditionalFields;
-	for(prop in additionalFields) {
-		//Don't overwrite log level additional fields
-		if(typeof opts[prop] === 'undefined') {
+	var additionalFields = GLOBAL.graylogAdditionalFields;
+	Object.keys(additionalFields).forEach(function(prop) {
+		// Don't overwrite log level additional fields
+		if (typeof opts[prop] === 'undefined') {
 			opts[prop] = additionalFields[prop];	
-		}		
-	}
+		}
+	});
 
 	if (opts.stack) {
 		retrieveFileInfo(opts);
