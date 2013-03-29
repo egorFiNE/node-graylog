@@ -101,7 +101,7 @@ function sendSingleShot(graylog2Client, compressedMessage, address) {
 function resolveAndSend(graylog2Client, compressedMessage, dnsName, sendFunc) {
 	dns.resolve4(GLOBAL.graylogHost, function(dnsErr, addr) {
 		if (dnsErr) {
-			util.debug("Graylog oops: DNS Error (" + dnsErr + "), I print to stderr and give up: \n" + message.toString());
+			util.debug("Graylog oops: DNS Error (" + dnsErr + "), I print to stderr and give up: \n");
 			return;
 		}
 
