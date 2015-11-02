@@ -1,4 +1,4 @@
-var 
+var
 	zlib = require('zlib'),
 	dgram = require('dgram'),
 	util = require('util'),
@@ -29,7 +29,7 @@ function generateMessageId() {
 }
 
 function _logToConsole(shortMessage, opts) {
-	var 
+	var
 		consoleString = shortMessage,
 		additionalFields = [];
 
@@ -43,7 +43,7 @@ function _logToConsole(shortMessage, opts) {
 				"  " +
 				key.substr(1,1024) +
 				": " +
-				'\033[' + 34 + 'm' + 
+				'\033[' + 34 + 'm' +
 				opts[key] +
 				'\033[' + 39 + 'm'
 			);
@@ -58,20 +58,20 @@ function _logToConsole(shortMessage, opts) {
 }
 
 function sendChunked(graylog2Client, compressedMessage, address) {
-	var 
+	var
 		messageId = generateMessageId(),
 		sequenceSize = Math.ceil(compressedMessage.length / GLOBAL.graylogChunkSize),
 		byteOffset = 0,
 		chunksWritten = 0;
 
 	if (sequenceSize > 128) {
-		util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + message.toString());
+		util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + compressedMessage.toString());
 		return;
 	}
 
 	for(var sequence=0; sequence<sequenceSize; sequence++) {
-		var 
-			chunkBytes = (byteOffset + GLOBAL.graylogChunkSize) < compressedMessage.length ? GLOBAL.graylogChunkSize : (compressedMessage.length - byteOffset), 
+		var
+			chunkBytes = (byteOffset + GLOBAL.graylogChunkSize) < compressedMessage.length ? GLOBAL.graylogChunkSize : (compressedMessage.length - byteOffset),
 			chunk = new Buffer(chunkBytes + 12);
 
 		chunk[0] = 0x1e;
@@ -82,7 +82,7 @@ function sendChunked(graylog2Client, compressedMessage, address) {
 		compressedMessage.copy(chunk, 12, byteOffset, byteOffset+chunkBytes);
 
 		byteOffset += chunkBytes;
-		
+
 		graylog2Client.send(chunk, 0, chunk.length, GLOBAL.graylogPort, address, function (err, byteCount) {
 			chunksWritten++;
 			if (chunksWritten == sequenceSize) {
@@ -129,7 +129,7 @@ function log(shortMessage, a, b) {
 	Object.keys(additionalFields).forEach(function(prop) {
 		// Don't overwrite log level additional fields
 		if (typeof opts[prop] === 'undefined') {
-			opts[prop] = additionalFields[prop];	
+			opts[prop] = additionalFields[prop];
 		}
 	});
 
@@ -142,12 +142,12 @@ function log(shortMessage, a, b) {
 	}
 
 	opts.short_message = shortMessage;
-	
-	if (GLOBAL.graylogToConsole) { 
+
+	if (GLOBAL.graylogToConsole) {
 		_logToConsole(shortMessage, opts);
 	}
 
-	var 
+	var
 		message = new Buffer(JSON.stringify(opts)),
 		sendFunc = sendSingleShot;
 
@@ -163,7 +163,7 @@ function log(shortMessage, a, b) {
 
 		if (!net.isIPv4(GLOBAL.graylogHost)) {
 			resolveAndSend(graylog2Client, compressedMessage, GLOBAL.graylogHost, sendFunc);
-		} else { 
+		} else {
 			sendFunc(graylog2Client, compressedMessage, GLOBAL.graylogHost);
 		}
 	});
