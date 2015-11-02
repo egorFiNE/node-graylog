@@ -65,7 +65,7 @@ function sendChunked(graylog2Client, compressedMessage, address) {
 		chunksWritten = 0;
 
 	if (sequenceSize > 128) {
-		util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + message.toString());
+		util.debug("Graylog oops: log message is larger than 128 chunks, I print to stderr and give up: \n" + compressedMessage.toString());
 		return;
 	}
 
