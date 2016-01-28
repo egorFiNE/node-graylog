@@ -5,48 +5,48 @@ Graylog2 client library for Node.js
 ## Synopsis
 
 ```javascript
-	require("graylog");
+require("graylog");
 ```
 	
 Short message:
 
 ```javascript
-	log("What we've got here is...failure to communicate");
+log("What we've got here is...failure to communicate");
 ```
 
 Long message:
 
 ```javascript
-	log("What we've got here is...failure to communicate", "Some men you just 
-		can't reach. So you get what we had here last week, which is the way he wants 
-		it... well, he gets it. I don't like it any more than you men.");
+log("What we've got here is...failure to communicate", "Some men you just 
+	can't reach. So you get what we had here last week, which is the way he wants 
+	it... well, he gets it. I don't like it any more than you men.");
 ```
 
 Short with options:
 
 ```javascript
-	log("What we've got here is...failure to communicate", { level: LOG_DEBUG });
+log("What we've got here is...failure to communicate", { level: LOG_DEBUG });
 ```
 
 Long with options: 
 
 ```javascript
-	log("What we've got here is...failure to communicate", "Some men you just 
-		can't reach. So you get what we had here last week, which is the way he wants 
-		it... well, he gets it. I don't like it any more than you men.", 
-		{
-			facility: "Steve Martin"
-		}
-	);
+log("What we've got here is...failure to communicate", "Some men you just 
+	can't reach. So you get what we had here last week, which is the way he wants 
+	it... well, he gets it. I don't like it any more than you men.", 
+	{
+		facility: "Steve Martin"
+	}
+);
 ```
 
 You can add custom fields to the options: 
 	
 ```javascript
-	log("What we've got here", { 
-		level: LOG_DEBUG,
-		_failure: "to communicate"
-	});
+log("What we've got here", { 
+	level: LOG_DEBUG,
+	_failure: "to communicate"
+});
 ```
 
 ## Options
@@ -71,12 +71,12 @@ You can set <code>GLOBAL.graylogChunkSize</code> to the maximum allowed bytes fo
 
 You can set <code>GLOBAL.additionalFields</code> for any properties that would like to include on every log message.
 
-```   
+````
 GLOBAL.additionalFields = {
     _environment: "Dev",
     _version: "1.0"
 }
-```  
+````
 
 
 ## Example
