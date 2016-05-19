@@ -100,7 +100,7 @@ It's a miracle. Get it at http://www.graylog2.org/
 
 ## License
 
-See LICENSE file. Basically, it's a kind of "do-whatever-you-want-for-free" license.
+MIT
 
 ## Author
 
