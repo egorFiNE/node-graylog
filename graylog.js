@@ -23,6 +23,7 @@ GLOBAL.graylogFacility = 'Node.js';
 GLOBAL.graylogSequence = 0;
 GLOBAL.graylogChunkSize = 1100; // 8192 is the maximum
 GLOBAL.graylogAdditionalFields = {};
+GLOBAL.gelfversion = 1.1
 
 function generateMessageId() {
 	return '' + (Date.now() + Math.floor(Math.random()*10000));
@@ -118,7 +119,7 @@ function log(shortMessage, a, b) {
 		opts = a || {};
 	}
 
-	opts.version="1.0";
+	opts.version=GLOBAL.gelfversion;
 	opts.timestamp = opts.timestamp || new Date().getTime()/1000 >> 0;
 	opts.host = opts.host || GLOBAL.graylogHostname;
 	opts.level = opts.level !== undefined ? opts.level : GLOBAL.LOG_INFO;
