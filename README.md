@@ -71,7 +71,7 @@ You can set <code>GLOBAL.graylogChunkSize</code> to the maximum allowed bytes fo
 
 You can set <code>GLOBAL.additionalFields</code> for any properties that would like to include on every log message.
 
-You can set <code>GLOBAL.gelfversion</code> for initialize gelf spec version by default is set to 1.1. There way can be used as option of additionalFields use 
+You can set <code>GLOBAL.gelfVersion</code> for initialize gelf spec version. By default it is set to 1.1. 
 
 
 ````
