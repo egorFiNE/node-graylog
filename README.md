@@ -1,4 +1,10 @@
-# node-graylog
+# Deprecated and abandoned
+
+This project is abandoned. Plenty of other npm modules for the same task exists. 
+
+---------------------------------
+
+## node-graylog
 
 Graylog2 client library for Node.js
 
@@ -17,9 +23,9 @@ log("What we've got here is...failure to communicate");
 Long message:
 
 ```javascript
-log("What we've got here is...failure to communicate", "Some men you just 
-	can't reach. So you get what we had here last week, which is the way he wants 
-	it... well, he gets it. I don't like it any more than you men.");
+log("What we've got here is...failure to communicate", "Some men you just \
+  can't reach. So you get what we had here last week, which is the way he wants \
+  it... well, he gets it. I don't like it any more than you men.");
 ```
 
 Short with options:
@@ -31,9 +37,9 @@ log("What we've got here is...failure to communicate", { level: LOG_DEBUG });
 Long with options: 
 
 ```javascript
-log("What we've got here is...failure to communicate", "Some men you just 
-	can't reach. So you get what we had here last week, which is the way he wants 
-	it... well, he gets it. I don't like it any more than you men.", 
+log("What we've got here is...failure to communicate", "Some men you just \
+ can't reach. So you get what we had here last week, which is the way he wants \
+ it... well, he gets it. I don't like it any more than you men.", 
 	{
 		facility: "Steve Martin"
 	}
